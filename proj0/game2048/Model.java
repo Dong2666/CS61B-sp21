@@ -5,16 +5,24 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: YOUR NAME HERE
+ *  @author Jiawei Dong
  */
 public class Model extends Observable {
-    /** Current contents of the board. */
+    /**
+     * Current contents of the board.
+     */
     private Board board;
-    /** Current score. */
+    /**
+     * Current score.
+     */
     private int score;
-    /** Maximum score so far.  Updated when game ends. */
+    /**
+     * Maximum score so far.  Updated when game ends.
+     */
     private int maxScore;
-    /** True iff game is ended. */
+    /**
+     * True iff game is ended.
+     */
     private boolean gameOver;
 
     /* Coordinate System: column C, row R of the board (where row 0,
@@ -22,20 +30,26 @@ public class Model extends Observable {
      * to board.tile(c, r).  Be careful! It works like (x, y) coordinates.
      */
 
-    /** Largest piece value. */
+    /**
+     * Largest piece value.
+     */
     public static final int MAX_PIECE = 2048;
 
-    /** A new 2048 game on a board of size SIZE with no pieces
-     *  and score 0. */
+    /**
+     * A new 2048 game on a board of size SIZE with no pieces
+     * and score 0.
+     */
     public Model(int size) {
         board = new Board(size);
         score = maxScore = 0;
         gameOver = false;
     }
 
-    /** A new 2048 game where RAWVALUES contain the values of the tiles
+    /**
+     * A new 2048 game where RAWVALUES contain the values of the tiles
      * (0 if null). VALUES is indexed by (row, col) with (0, 0) corresponding
-     * to the bottom-left corner. Used for testing purposes. */
+     * to the bottom-left corner. Used for testing purposes.
+     */
     public Model(int[][] rawValues, int score, int maxScore, boolean gameOver) {
         int size = rawValues.length;
         board = new Board(rawValues, score);
@@ -44,22 +58,27 @@ public class Model extends Observable {
         this.gameOver = gameOver;
     }
 
-    /** Return the current Tile at (COL, ROW), where 0 <= ROW < size(),
-     *  0 <= COL < size(). Returns null if there is no tile there.
-     *  Used for testing. Should be deprecated and removed.
-     *  */
+    /**
+     * Return the current Tile at (COL, ROW), where 0 <= ROW < size(),
+     * 0 <= COL < size(). Returns null if there is no tile there.
+     * Used for testing. Should be deprecated and removed.
+     */
     public Tile tile(int col, int row) {
         return board.tile(col, row);
     }
 
-    /** Return the number of squares on one side of the board.
-     *  Used for testing. Should be deprecated and removed. */
+    /**
+     * Return the number of squares on one side of the board.
+     * Used for testing. Should be deprecated and removed.
+     */
     public int size() {
         return board.size();
     }
 
-    /** Return true iff the game is over (there are no moves, or
-     *  there is a tile with value 2048 on the board). */
+    /**
+     * Return true iff the game is over (there are no moves, or
+     * there is a tile with value 2048 on the board).
+     */
     public boolean gameOver() {
         checkGameOver();
         if (gameOver) {
@@ -68,17 +87,23 @@ public class Model extends Observable {
         return gameOver;
     }
 
-    /** Return the current score. */
+    /**
+     * Return the current score.
+     */
     public int score() {
         return score;
     }
 
-    /** Return the current maximum game score (updated at end of game). */
+    /**
+     * Return the current maximum game score (updated at end of game).
+     */
     public int maxScore() {
         return maxScore;
     }
 
-    /** Clear the board to empty and reset the score. */
+    /**
+     * Clear the board to empty and reset the score.
+     */
     public void clear() {
         score = 0;
         gameOver = false;
@@ -86,34 +111,86 @@ public class Model extends Observable {
         setChanged();
     }
 
-    /** Add TILE to the board. There must be no Tile currently at the
-     *  same position. */
+    /**
+     * Add TILE to the board. There must be no Tile currently at the
+     * same position.
+     */
     public void addTile(Tile tile) {
         board.addTile(tile);
         checkGameOver();
         setChanged();
     }
 
-    /** Tilt the board toward SIDE. Return true iff this changes the board.
-     *
+    /**
+     * Tilt the board toward SIDE. Return true iff this changes the board.
+     * <p>
      * 1. If two Tile objects are adjacent in the direction of motion and have
-     *    the same value, they are merged into one Tile of twice the original
-     *    value and that new value is added to the score instance variable
+     * the same value, they are merged into one Tile of twice the original
+     * value and that new value is added to the score instance variable
      * 2. A tile that is the result of a merge will not merge again on that
-     *    tilt. So each move, every tile will only ever be part of at most one
-     *    merge (perhaps zero).
+     * tilt. So each move, every tile will only ever be part of at most one
+     * merge (perhaps zero).
      * 3. When three adjacent tiles in the direction of motion have the same
-     *    value, then the leading two tiles in the direction of motion merge,
-     *    and the trailing tile does not.
-     * */
+     * value, then the leading two tiles in the direction of motion merge,
+     * and the trailing tile does not.
+     */
     public boolean tilt(Side side) {
-        boolean changed;
-        changed = false;
-
+        boolean changed = false;
+        board.setViewingPerspective(side);
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+//嗯嗯cs61b我恨你
 
+//        先只处理向上移动，并且只处理一行，从r3开始向下迭代
+//        board.move(c, ar, t)
+//        /**
+//         *  c,r
+//         *  0,3  1,3  2,3  3,3
+//         *  0,2  1,2  2,2  3,2
+//         *  0,1  1,1  2,1  3,1
+//         *  0,0  1,0  2,0  3,0
+//         */
+        for (int c = 0; c <= 3; c++) {
+            boolean[] merge = new boolean[board.size()];
+            for (int r = 2; r >= 0; r -= 1) {
+                Tile t = board.tile(c, r);
+                int ar = r;
+//                若当前格子为null,直接进入下一个tile
+                if (t == null) {
+                    continue;
+                }
+//                遍历寻找目标位置：dr递增，当目标位置值不相等或者已发生合并时，dr - 1
+//                break的情况:到底了或者dr非null
+                for (int dr = r + 1; dr < 4; dr++) {
+                    if (board.tile(c, dr) == null) {
+                        if (dr == 3) {
+                            ar = 3;
+                            break;
+                        }
+                        continue;
+                    }
+//                    非null的两个情况 1.不合并 2.合并
+                    if (t.value() != board.tile(c, dr).value() || merge[dr] == true) {
+                        dr -= 1;
+                        ar = dr;
+                        break;
+                    } else {
+                        ar = dr;
+                        break;
+                    }
+                }
+//                发生移动则change
+                if (ar != r) {
+                    changed = true;
+                }
+                if (board.move(c, ar, t)) {
+                    merge[ar] = true;
+                    score += board.tile(c, ar).value();
+                }
+            }
+        }
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
@@ -137,7 +214,13 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        // TODO: Fill in this function.
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(i, j) == null){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -147,7 +230,15 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        int size = b.size();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                Tile t = b.tile(i, j);
+                if (t != null && t.value() == MAX_PIECE){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -158,13 +249,28 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
-        return false;
+        if (emptySpaceExists(b) == true){
+            return true;
+        } else if (maxTileExists(b) == true) {
+            return true;
+        } else {
+            for (int i = 0; i < b.size(); i++) {
+                for (int j = 0; j < b.size(); j++) {
+                    if (j < b.size() - 1 && b.tile(i, j).value()== b.tile(i, j + 1).value()){
+                        return true;
+                    }
+                    if (i < b.size() - 1 && b.tile(i, j).value() == b.tile(i + 1, j).value()){
+                        return true;
+                    }
+                }
+            }
+            return  false;
+        }
     }
 
 
     @Override
-     /** Returns the model as a string, used for debugging. */
+    /** Returns the model as a string, used for debugging. */
     public String toString() {
         Formatter out = new Formatter();
         out.format("%n[%n");
