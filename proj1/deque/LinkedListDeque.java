@@ -32,7 +32,6 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
     public int size(){
         return size;
     }
-    @Override
     public void addFirst(T item){
 //        整体顺序：先修改新节点(first)和老节点(sentinel.next)的双向连接，再修改sentinel和新节点的连接
 //        局部顺序：先节点后哨兵，先去后回
