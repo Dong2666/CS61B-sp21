@@ -88,6 +88,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
 
         public T removeFirst(){
                 nextFirst = loop(nextFirst +1);
+                if (array[nextFirst] == null ){
+                        return null;
+                }
                 T item = array [nextFirst ];
                 array[nextFirst] = null;
                 size --;
@@ -96,6 +99,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
 
         public T removeLast(){
                 nextLast = loop(nextLast - 1);
+                if (array[nextLast] == null ){
+                        return null;
+                }
                 T item = array [nextLast];
                 array[nextLast] = null;
                 size --;
